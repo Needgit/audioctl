@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from importlib import import_module
 from typing import Iterable
-
-logging = import_module("logging")
+import logging
 
 from audioctl.models import Config, Profile
 from audioctl.pipewire import DeviceStatus, PipeWireError, SinkInfo

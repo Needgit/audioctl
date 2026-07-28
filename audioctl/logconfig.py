@@ -1,8 +1,6 @@
 """Logging helpers for audioctl."""
 
-from importlib import import_module
-
-logging = import_module("logging")
+import logging
 
 
 def configure_logging(level: int = logging.INFO) -> None:

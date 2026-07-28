@@ -18,10 +18,10 @@ The configuration file is stored at:
 - `$XDG_CONFIG_HOME/audioctl/config.toml`
 - or `~/.config/audioctl/config.toml` if `XDG_CONFIG_HOME` is not set.
 
-Initialize the config file with:
+Create the config by adding a profile (the command will create the config if missing):
 
 ```bash
-audioctl profiles init
+audioctl profiles add headset --match alsa_output.usb-Headset --volume 60
 ```
 
 A sample configuration for a headset and speaker profile:

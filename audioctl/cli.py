@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from importlib import import_module
 import sys
+import logging
 from pathlib import Path
 
-logging = import_module("logging")
+
 
 from audioctl.config import ConfigurationError, get_default_config_path, load_config, save_config
 from audioctl.controller import (
@@ -54,12 +54,7 @@ def _list_profiles(config: Config, status: DeviceStatus) -> None:
         _print_profile(profile, active=active, available=available)
 
 
-def _initialize_config(path: Path | None = None) -> None:
-    config_path = path or get_default_config_path()
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    default = Config(profiles=(), path=config_path)
-    save_config(default)
-    print(f"Initialized configuration at {config_path}")
+
 
 
 def _load_status() -> DeviceStatus:
@@ -81,8 +76,16 @@ def main(argv: list[str] | None = None) -> int:
     subparsers.add_parser("status", help="show current active profile and sink status")
     profiles_parser = subparsers.add_parser("profiles", help="profile configuration management")
     profiles_subparsers = profiles_parser.add_subparsers(dest="profiles_command")
-    profiles_subparsers.add_parser("init", help="initialize configuration file")
     profiles_subparsers.add_parser("list", help="list configured profiles")
+    profiles_subparsers.add_parser("sinks", help="list available PipeWire sinks (id and name)")
+    add_parser = profiles_subparsers.add_parser("add", help="add a profile to configuration")
+    add_parser.add_argument("name", help="profile name to create")
+    add_parser.add_argument("--match", help="exact match string for sink name")
+    add_parser.add_argument("--prefix", help="prefix to match sink name")
+    add_parser.add_argument("--suffix", help="suffix to match sink name")
+    add_parser.add_argument("--volume", type=int, help="optional volume percent (0-100)")
+    remove_parser = profiles_subparsers.add_parser("remove", help="remove a profile by name (case-insensitive)")
+    remove_parser.add_argument("name", help="profile name to remove")
     # volume controls
     volume_parser = subparsers.add_parser("volume", help="control sink volume")
     volume_subparsers = volume_parser.add_subparsers(dest="volume_command")
@@ -106,11 +109,70 @@ def main(argv: list[str] | None = None) -> int:
                 status = _load_status()
                 _list_profiles(config, status)
                 return 0
-            if args.profiles_command == "init":
-                _initialize_config()
+            if args.profiles_command == "sinks":
+                status = _load_status()
+                for sink in status.available_sinks:
+                    active_mark = "*" if sink.active else " "
+                    print(f"{active_mark} {sink.node}\t{sink.name}")
                 return 0
-            profiles_parser.print_help()
-            return 1
+            
+            if args.profiles_command is None:
+                profiles_parser.print_help()
+                return 1
+            if args.profiles_command == "add":
+                # create or load config
+                try:
+                    config = load_config(None)
+                except ConfigurationError as exc:
+                    if "not found" in str(exc).lower():
+                        from audioctl.models import Config as _Config
+
+                        config = _Config(profiles=(), path=get_default_config_path())
+                    else:
+                        raise
+
+                name = args.name
+                match = args.match
+                prefix = args.prefix
+                suffix = args.suffix
+                volume = args.volume
+
+                if volume is not None and (volume < 0 or volume > 100):
+                    print("Volume must be between 0 and 100")
+                    return 1
+
+                if not any([match, prefix, suffix]):
+                    print("You must provide --match or --prefix/--suffix to add a profile")
+                    return 1
+
+                # prevent duplicate names
+                if any(p.name == name for p in config.profiles):
+                    print(f"Profile with name '{name}' already exists")
+                    return 1
+
+                new = Profile(name=name, match=match, prefix=prefix, suffix=suffix, volume=volume)
+                new_profiles = tuple([*config.profiles, new])
+                new_config = Config(profiles=new_profiles, path=config.path)
+                save_config(new_config)
+                print(f"Added profile {name}")
+                return 0
+            if args.profiles_command == "remove":
+                try:
+                    config = load_config(None)
+                except ConfigurationError as exc:
+                    print(f"Configuration error: {exc}")
+                    return 1
+
+                target = args.name.casefold()
+                remaining = tuple(p for p in config.profiles if p.name.casefold() != target)
+                removed = len(config.profiles) - len(remaining)
+                if removed == 0:
+                    print(f"Profile '{args.name}' not found")
+                    return 1
+                new_config = Config(profiles=remaining, path=config.path)
+                save_config(new_config)
+                print(f"Removed {removed} profile(s) named '{args.name}'")
+                return 0
 
         if args.command == "volume" and getattr(args, "volume_command", None) is None:
             volume_parser.print_help()

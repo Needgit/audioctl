@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from importlib import import_module
+import logging
 import re
 import subprocess
 
-logging = import_module("logging")
+# Use the standard logging module but keep import_module available if needed
 from dataclasses import dataclass
 from typing import NamedTuple
 

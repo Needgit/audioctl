@@ -19,8 +19,8 @@ def test_profiles_without_subcommand_prints_profiles_help(monkeypatch, capsys):
 
     assert exit_code == 1
     assert "usage: audioctl profiles" in captured.out
-    assert "init" in captured.out
     assert "list" in captured.out
+    assert "sinks" in captured.out
 
 
 def test_profiles_list_shows_available_profiles(monkeypatch, capsys):
