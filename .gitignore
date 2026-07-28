@@ -1,0 +1,35 @@
+.venv/
+env/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.swp
+.python-version
+.Python
+
+build/
+dist/
+coverage.xml
+htmlcov/
+.tox/
+.pytest_cache/
+.pyre/
+mypy_cache/
+.cache/
+*.egg-info/
+.eggs/
+
+pip-wheel-metadata/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
