@@ -111,3 +111,50 @@ def apply_profile(profile: Profile, status: DeviceStatus) -> None:
             set_volume(sink.node, profile.volume)
         except PipeWireError as exc:
             raise ControllerError(str(exc)) from exc
+
+
+def set_volume_now(status: DeviceStatus, volume: int) -> None:
+    """Set the volume on the currently active sink to `volume` percent.
+
+    Raises ControllerError if there is no active sink or volume is out of range.
+    """
+    if not isinstance(volume, int) or not 0 <= volume <= 100:
+        raise ControllerError("Volume must be an integer between 0 and 100.")
+    if status.sink is None:
+        raise ControllerError("No active sink to set volume on.")
+    try:
+        from audioctl.pipewire import set_volume
+
+        set_volume(status.sink.node, volume)
+    except PipeWireError as exc:
+        raise ControllerError(str(exc)) from exc
+
+
+def adjust_volume(status: DeviceStatus, delta: int) -> int:
+    """Adjust the active sink volume by `delta` percent and return the new volume."""
+    if status.sink is None:
+        raise ControllerError("No active sink to adjust volume on.")
+    current = status.sink.volume
+    new = max(0, min(100, current + int(delta)))
+    try:
+        from audioctl.pipewire import set_volume
+
+        set_volume(status.sink.node, new)
+    except PipeWireError as exc:
+        raise ControllerError(str(exc)) from exc
+    return new
+
+
+def reset_volume_to_profile(config: Config, status: DeviceStatus) -> int:
+    """Reset active sink volume to the configured volume on the active profile.
+
+    Returns the volume applied. Raises ControllerError with a descriptive message
+    if no active profile or profile has no volume.
+    """
+    active = get_active_profile(config, status)
+    if active is None:
+        raise ControllerError("No active profile to reset volume from.")
+    if active.volume is None:
+        raise ControllerError("Active profile has no configured volume to reset to.")
+    set_volume_now(status, active.volume)
+    return active.volume

@@ -83,6 +83,16 @@ def main(argv: list[str] | None = None) -> int:
     profiles_subparsers = profiles_parser.add_subparsers(dest="profiles_command")
     profiles_subparsers.add_parser("init", help="initialize configuration file")
     profiles_subparsers.add_parser("list", help="list configured profiles")
+    # volume controls
+    volume_parser = subparsers.add_parser("volume", help="control sink volume")
+    volume_subparsers = volume_parser.add_subparsers(dest="volume_command")
+    vol_set = volume_subparsers.add_parser("set", help="set volume to a value")
+    vol_set.add_argument("value", type=int, help="volume percent (0-100)")
+    volume_subparsers.add_parser("reset", help="reset volume to the active profile value")
+    vol_up = volume_subparsers.add_parser("up", help="increase volume by step")
+    vol_up.add_argument("--step", "-s", type=int, default=5, help="step in percent")
+    vol_down = volume_subparsers.add_parser("down", help="decrease volume by step")
+    vol_down.add_argument("--step", "-s", type=int, default=5, help="step in percent")
 
     args = parser.parse_args(argv)
     if args.command is None:
@@ -102,8 +112,43 @@ def main(argv: list[str] | None = None) -> int:
             profiles_parser.print_help()
             return 1
 
+        if args.command == "volume" and getattr(args, "volume_command", None) is None:
+            volume_parser.print_help()
+            return 1
+
         config = load_config(None)
         status = _load_status()
+
+        if args.command == "volume":
+            try:
+                if args.volume_command == "set":
+                    from audioctl.controller import set_volume_now
+
+                    set_volume_now(status, args.value)
+                    print(f"Set volume to {args.value}%")
+                    return 0
+                if args.volume_command == "up":
+                    from audioctl.controller import adjust_volume
+
+                    new = adjust_volume(status, int(args.step))
+                    print(f"Volume increased to {new}%")
+                    return 0
+                if args.volume_command == "down":
+                    from audioctl.controller import adjust_volume
+
+                    new = adjust_volume(status, -int(args.step))
+                    print(f"Volume decreased to {new}%")
+                    return 0
+                if args.volume_command == "reset":
+                    from audioctl.controller import reset_volume_to_profile
+
+                    vol = reset_volume_to_profile(config, status)
+                    print(f"Volume reset to {vol}%")
+                    return 0
+            except ControllerError as exc:
+                logging.warning(str(exc))
+                print(str(exc))
+                return 1
 
         if args.command == "next":
             profile = cycle_profile(config, status, step=1)
