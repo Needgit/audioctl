@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# audioctl wrapper template; installer replaces @REPO@ with the project path
+REPO="@REPO@"
+if [ -x "$REPO/.venv/bin/python" ]; then
+  exec "$REPO/.venv/bin/python" "$REPO/audioctl/__main__.py" "$@"
+else
+  exec python3 "$REPO/audioctl/__main__.py" "$@"
+fi
