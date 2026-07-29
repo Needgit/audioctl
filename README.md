@@ -10,13 +10,34 @@ I made this tool because I wanted a quick way to switch between headset and spea
 
 ## Usage
 
+Basic profile switching:
+
 ```bash
 audioctl next
 audioctl previous
 audioctl use <profile>
 audioctl status
-audioctl profiles list
 ```
+
+Profile configuration and discovery:
+
+```bash
+audioctl profiles list
+audioctl profiles sinks
+audioctl profiles add <name> --match <sink-name> [--volume <percent>]
+audioctl profiles remove <name>
+```
+
+Volume control:
+
+```bash
+audioctl volume set <percent>
+audioctl volume up --step 5
+audioctl volume down --step 5
+audioctl volume reset
+```
+
+`audioctl profiles add` will create the config file if it does not already exist. `audioctl volume reset` restores the configured volume for the active profile when available.
 
 ### Configuration
 
