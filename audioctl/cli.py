@@ -64,7 +64,7 @@ def _load_status() -> DeviceStatus:
         raise SystemExit(EXIT_PIPEWIRE) from exc
 
 
-def main(argv: list[str] | None = None) -> int:
+def cli_main(argv: list[str] | None = None) -> int:
     configure_logging()
     parser = argparse.ArgumentParser(prog="audioctl")
     subparsers = parser.add_subparsers(dest="command")

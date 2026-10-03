@@ -1,5 +1,9 @@
-from audioctl.cli import main
+from audioctl.cli import cli_main
+
+
+def main() -> int:
+    return cli_main()
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

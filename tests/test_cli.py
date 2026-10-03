@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from audioctl.cli import main
+from audioctl.cli import cli_main
 from audioctl.models import Config, Profile
 from audioctl.pipewire import DeviceStatus, SinkInfo
 
@@ -14,7 +14,7 @@ def make_status(active_name: str | None, names: list[str]) -> DeviceStatus:
 
 
 def test_profiles_without_subcommand_prints_profiles_help(monkeypatch, capsys):
-    exit_code = main(["profiles"])
+    exit_code = cli_main(["profiles"])
     captured = capsys.readouterr()
 
     assert exit_code == 1
@@ -36,7 +36,7 @@ def test_profiles_list_shows_available_profiles(monkeypatch, capsys):
     monkeypatch.setattr("audioctl.cli.load_config", lambda _: config)
     monkeypatch.setattr("audioctl.cli.get_status", lambda: status)
 
-    exit_code = main(["profiles", "list"])
+    exit_code = cli_main(["profiles", "list"])
     captured = capsys.readouterr()
 
     assert exit_code == 0

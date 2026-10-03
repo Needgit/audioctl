@@ -6,7 +6,7 @@ It depends on PipeWire and the `wpctl` command-line tool to query and control si
 
 I made this tool because I wanted a quick way to switch between headset and speaker setups, and to keep volume stable when I switch. Since the volume encoder on my keyboard is not behaving consistently, I also wanted a reliable command-line fallback that I can bind to keyboard shortcuts.
 
->This project was created with assistance from GitHub Copilot. The generated code and documentation have been reviewed and edited by a human maintainer.
+> This project was created with assistance from GitHub Copilot. The generated code and documentation have been reviewed and edited by a human maintainer.
 
 ## Usage
 
@@ -73,7 +73,7 @@ volume = 30
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e .
+python -m pip install -e .
 ```
 
 ## Testing
@@ -81,41 +81,55 @@ pip install -e .
 Install test dependencies in the virtual environment and run:
 
 ```bash
-pip install -e .[test]
+python -m pip install -e '.[test]'
 python -m pytest
 ```
 
 ## Local Deployment
 
-You can build the distribution inside the project's development virtualenv (recommended), then install the built wheel outside the venv using `pipx` so the `audioctl` command is available system-wide for your user.
+You can build a wheel in the project's development venv, then install it with `pipx` so the `audioctl` command is available to your user. `pipx` creates a separate virtual environment for the installed application; it does not install the application into the project `.venv` or system Python.
 
 ### Build in the project `.venv`
 
-Run these commands from the repository root. This builds the wheel using the environment you use for development:
+Run these commands from the repository root while the project `.venv` is active. This builds the wheel from the project source:
 
 ```bash
 python -m pip install --upgrade pip build
 python -m build
-deactivate
 ```
 
 The built artifacts will be in `dist/`.
 
 ### Install with `pipx` (outside the `.venv`)
 
-Install `pipx` if you don't have it, then install the wheel from `dist/` (run these commands outside the activated `.venv`):
+After building the wheel, deactivate the project `.venv` before running these commands. Install `pipx` if you don't have it, then install the wheel from `dist/`:
 
 ```bash
+deactivate
+
+# Dependencies
 python3 -m pip install --user pipx
 python3 -m pipx ensurepath
+
+# Deploy
 pipx install dist/*.whl
+
+# Return to the development environment
+source .venv/bin/activate
 ```
 
-To upgrade later, rebuild in the `.venv` and then run:
+To deploy an updated build, first rerun your tests against the development install in `.venv` (the editable install uses your current source files). Build while `.venv` is active, then deactivate it before updating the separate `pipx` installation. Reactivate `.venv` afterward to continue development:
 
 ```bash
+# In the project .venv, from the repository root
 python -m build
+deactivate
+
+# Outside .venv, from the repository root
 pipx install --force dist/*.whl
+
+# Return to the development environment
+source .venv/bin/activate
 ```
 
 ### Simple wrapper script (alternative)
