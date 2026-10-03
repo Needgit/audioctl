@@ -85,6 +85,18 @@ python -m pip install -e '.[test]'
 python -m pytest
 ```
 
+## Local Releases
+
+Package versions come from Git tags via `setuptools-scm`; do not set the version in `pyproject.toml` or `audioctl/__init__.py`. Create a tag on the committed release changes, then refresh the editable install so `audioctl --version` reports that tag:
+
+```bash
+git tag -a v0.1.0 -m "audioctl 0.1.0"
+python -m pip install -e .
+python -m audioctl --version
+```
+
+Use a new version tag for each release; do not move or reuse a published version tag. To build locally, follow the wheel build steps below. Checkouts without usable Git metadata fall back to `0.0.dev0`.
+
 ## Local Deployment
 
 You can build a wheel in the project's development venv, then install it with `pipx` so the `audioctl` command is available to your user. `pipx` creates a separate virtual environment for the installed application; it does not install the application into the project `.venv` or system Python.

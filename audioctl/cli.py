@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 
-
+from audioctl import __version__
 from audioctl.config import ConfigurationError, get_default_config_path, load_config, save_config
 from audioctl.controller import (
     ControllerError,
@@ -67,6 +67,7 @@ def _load_status() -> DeviceStatus:
 def cli_main(argv: list[str] | None = None) -> int:
     configure_logging()
     parser = argparse.ArgumentParser(prog="audioctl")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command")
 
     subparsers.add_parser("next", help="switch to the next available profile")

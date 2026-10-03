@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import pytest
+
+from audioctl import __version__
 from audioctl.cli import cli_main
 from audioctl.models import Config, Profile
 from audioctl.pipewire import DeviceStatus, SinkInfo
@@ -11,6 +14,14 @@ def make_status(active_name: str | None, names: list[str]) -> DeviceStatus:
         sinks.append(SinkInfo(name=name, node=f"node-{name}", device=name, volume=50, active=name == active_name))
     active_sink = next((sink for sink in sinks if sink.active), None)
     return DeviceStatus(sink=active_sink, available_sinks=tuple(sinks))
+
+
+def test_version_option(capsys):
+    with pytest.raises(SystemExit) as exc_info:
+        cli_main(["--version"])
+
+    assert exc_info.value.code == 0
+    assert capsys.readouterr().out == f"audioctl {__version__}\n"
 
 
 def test_profiles_without_subcommand_prints_profiles_help(monkeypatch, capsys):

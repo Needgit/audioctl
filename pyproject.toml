@@ -1,10 +1,10 @@
 [project]
 name = "audioctl"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Lightweight PipeWire audio profile manager."
 authors = [{name = "audioctl contributors"}]
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = ["tomli>=2.0.0", "tomli-w>=1.0.0"]
 
@@ -15,5 +15,8 @@ audioctl = "audioctl.__main__:main"
 test = ["pytest>=9.0"]
 
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "setuptools-scm>=8.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+fallback_version = "0.0.dev0"
